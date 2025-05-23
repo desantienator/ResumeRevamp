@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileUp, Briefcase, Sparkles, Download, HelpCircle } from "lucide-react";
@@ -20,6 +20,8 @@ export default function Home() {
   const { toast } = useToast();
   const fileUpload = useFileUpload();
   const jobDescription = useJobDescription();
+
+
 
   const optimizeMutation = useMutation({
     mutationFn: async () => {
@@ -146,7 +148,6 @@ export default function Home() {
                   </h3>
                   <FileUpload 
                     onUploadSuccess={(result) => {
-                      updateStep();
                       toast({
                         title: "Resume Uploaded",
                         description: `Successfully analyzed your ${result.fileType} resume`,
@@ -170,11 +171,7 @@ export default function Home() {
                     <Briefcase className="text-purple-600 mr-2" size={20} />
                     Job Description
                   </h3>
-                  <JobDescriptionInput 
-                    onAnalysisComplete={() => {
-                      updateStep();
-                    }}
-                  />
+                  <JobDescriptionInput />
                 </CardContent>
               </Card>
             </div>
