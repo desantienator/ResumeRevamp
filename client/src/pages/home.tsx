@@ -87,7 +87,7 @@ export default function Home() {
       setCurrentStep(4);
     } else if (optimizeMutation.isPending) {
       setCurrentStep(3);
-    } else if (fileUpload.uploadedFile && jobDescription.content.trim()) {
+    } else if (fileUpload.uploadedFile && jobDescription.analysisResult) {
       setCurrentStep(2);
     } else if (fileUpload.uploadedFile) {
       setCurrentStep(2);
@@ -187,12 +187,6 @@ export default function Home() {
                 disabled={!fileUpload.uploadedFile || !jobDescription.analysisResult || optimizeMutation.isPending}
                 className="px-8 py-3 text-lg"
               >
-                {/* Debug info - remove after fixing */}
-                {console.log('Button debug:', {
-                  hasFile: !!fileUpload.uploadedFile,
-                  hasAnalysis: !!jobDescription.analysisResult,
-                  isPending: optimizeMutation.isPending
-                })}
                 {optimizeMutation.isPending ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2" />
