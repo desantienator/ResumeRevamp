@@ -7,17 +7,23 @@ import { useJobDescription } from "@/hooks/useJobDescription";
 
 interface JobDescriptionInputProps {
   onAnalysisComplete?: () => void;
+  content: string;
+  setContent: (content: string) => void;
+  analysisResult: any;
+  isAnalyzing: boolean;
+  lastSaved: string;
+  characterCount: number;
 }
 
-export default function JobDescriptionInput({ onAnalysisComplete }: JobDescriptionInputProps) {
-  const { 
-    content, 
-    setContent, 
-    analysisResult, 
-    isAnalyzing, 
-    lastSaved,
-    characterCount 
-  } = useJobDescription();
+export default function JobDescriptionInput({ 
+  onAnalysisComplete, 
+  content, 
+  setContent, 
+  analysisResult, 
+  isAnalyzing, 
+  lastSaved,
+  characterCount 
+}: JobDescriptionInputProps) {
 
   useEffect(() => {
     if (analysisResult && onAnalysisComplete) {

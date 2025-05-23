@@ -147,6 +147,10 @@ export default function Home() {
                     Upload Your Resume
                   </h3>
                   <FileUpload 
+                    uploadFile={fileUpload.uploadFile}
+                    uploadedFile={fileUpload.uploadedFile}
+                    isUploading={fileUpload.isUploading}
+                    removeFile={fileUpload.removeFile}
                     onUploadSuccess={(result) => {
                       toast({
                         title: "Resume Uploaded",
@@ -171,7 +175,20 @@ export default function Home() {
                     <Briefcase className="text-purple-600 mr-2" size={20} />
                     Job Description
                   </h3>
-                  <JobDescriptionInput />
+                  <JobDescriptionInput 
+                    content={jobDescription.content}
+                    setContent={jobDescription.setContent}
+                    analysisResult={jobDescription.analysisResult}
+                    isAnalyzing={jobDescription.isAnalyzing}
+                    lastSaved={jobDescription.lastSaved}
+                    characterCount={jobDescription.characterCount}
+                    onAnalysisComplete={() => {
+                      toast({
+                        title: "Job Analysis Complete",
+                        description: "Successfully analyzed job requirements",
+                      });
+                    }} 
+                  />
                 </CardContent>
               </Card>
             </div>

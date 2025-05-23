@@ -8,10 +8,13 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 interface FileUploadProps {
   onUploadSuccess?: (result: any) => void;
   onUploadError?: (error: string) => void;
+  uploadFile: (file: File) => Promise<any>;
+  uploadedFile: any;
+  isUploading: boolean;
+  removeFile: () => void;
 }
 
-export default function FileUpload({ onUploadSuccess, onUploadError }: FileUploadProps) {
-  const { uploadFile, uploadedFile, isUploading, removeFile } = useFileUpload();
+export default function FileUpload({ onUploadSuccess, onUploadError, uploadFile, uploadedFile, isUploading, removeFile }: FileUploadProps) {
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
