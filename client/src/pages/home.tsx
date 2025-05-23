@@ -178,29 +178,34 @@ export default function Home() {
 
             {/* Action Button */}
             <div className="flex justify-center mb-8">
-              <Button 
-                size="lg"
-                onClick={handleOptimize}
-                disabled={!fileUpload.uploadedFile || !jobDescription.analysisResult || optimizeMutation.isPending}
-                className="px-8 py-3 text-lg"
-              >
-                {optimizeMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2" size={20} />
-                    Optimize Resume with AI
-                  </>
-                )}
-              </Button>
+              <div className="text-center">
+                <div className="text-xs text-gray-500 mb-2">
+                  Debug: File: {fileUpload.uploadedFile ? '✓' : '✗'} | Analysis: {jobDescription.analysisResult ? '✓' : '✗'}
+                </div>
+                <Button 
+                  size="lg"
+                  onClick={handleOptimize}
+                  disabled={!fileUpload.uploadedFile || !jobDescription.analysisResult || optimizeMutation.isPending}
+                  className="px-8 py-3 text-lg"
+                >
+                  {optimizeMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2" size={20} />
+                      Optimize Resume with AI
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </>
         ) : (
           <ResultsSection 
-            result={optimizationResult}
+            result={optimizationResult!}
             onStartOver={handleStartOver}
           />
         )}
