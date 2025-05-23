@@ -196,9 +196,6 @@ export default function Home() {
             {/* Action Button */}
             <div className="flex justify-center mb-8">
               <div className="text-center">
-                <div className="text-xs text-gray-500 mb-2">
-                  Debug: File: {fileUpload.uploadedFile ? '✓' : '✗'} | Analysis: {jobDescription.analysisResult ? '✓' : '✗'}
-                </div>
                 <Button 
                   size="lg"
                   onClick={handleOptimize}
