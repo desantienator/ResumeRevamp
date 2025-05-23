@@ -14,7 +14,8 @@ import {
   Zap,
   Shield,
   Clock,
-  Copy
+  Copy,
+  Palette
 } from "lucide-react";
 import type { OptimizationResponse } from "@shared/schema";
 
@@ -23,8 +24,37 @@ interface ResultsSectionProps {
   onStartOver: () => void;
 }
 
+// Resume theme definitions
+const resumeThemes = {
+  modern: {
+    name: "Modern",
+    description: "Clean and contemporary design",
+    colors: { primary: "#2563eb", secondary: "#f8fafc", accent: "#0f172a" },
+    preview: "bg-gradient-to-br from-blue-50 to-white border-blue-200"
+  },
+  classic: {
+    name: "Classic",
+    description: "Traditional professional look",
+    colors: { primary: "#1f2937", secondary: "#ffffff", accent: "#6b7280" },
+    preview: "bg-white border-gray-300"
+  },
+  creative: {
+    name: "Creative",
+    description: "Vibrant and eye-catching",
+    colors: { primary: "#7c3aed", secondary: "#faf5ff", accent: "#a855f7" },
+    preview: "bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200"
+  },
+  minimal: {
+    name: "Minimal",
+    description: "Simple and elegant",
+    colors: { primary: "#059669", secondary: "#f0fdf4", accent: "#065f46" },
+    preview: "bg-gradient-to-br from-green-50 to-white border-green-200"
+  }
+};
+
 export default function ResultsSection({ result, onStartOver }: ResultsSectionProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<keyof typeof resumeThemes>('modern');
   const { toast } = useToast();
 
   const handleCopyToClipboard = async () => {
@@ -58,8 +88,8 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
         return;
       }
 
-      // Call the download API
-      const response = await fetch(`/api/download/${optimizationId}`, {
+      // Call the download API with theme information
+      const response = await fetch(`/api/download/${optimizationId}?theme=${selectedTheme}`, {
         method: 'GET',
       });
 
@@ -102,15 +132,22 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
     }
   };
 
-  // Helper function to format content sections with better markdown parsing
-  const formatContent = (content: string) => {
+  // Helper function to format content with theme styling
+  const formatContent = (content: string, useTheme = false) => {
+    const theme = resumeThemes[selectedTheme];
+    
     return content.split('\n').map((line, index) => {
       if (line.trim() === '') return <br key={index} />;
       
       // Headers (lines starting with ##)
       if (line.startsWith('## ')) {
+        const headerStyle = useTheme 
+          ? `font-bold text-xl mb-4 mt-6 pb-2 border-b-2` 
+          : "text-lg font-semibold text-gray-900 mt-6 mb-3 border-b border-gray-200 pb-1";
+        const headerColor = useTheme ? { color: theme.colors.primary, borderColor: theme.colors.primary } : {};
+        
         return (
-          <h3 key={index} className="text-lg font-semibold text-gray-900 mt-6 mb-3 border-b border-gray-200 pb-1">
+          <h3 key={index} className={headerStyle} style={headerColor}>
             {line.replace('## ', '')}
           </h3>
         );
@@ -118,8 +155,13 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
       
       // Subheaders (lines starting with ###)
       if (line.startsWith('### ')) {
+        const subHeaderStyle = useTheme 
+          ? "text-lg font-semibold mt-4 mb-2" 
+          : "text-md font-semibold text-gray-800 mt-4 mb-2";
+        const subHeaderColor = useTheme ? { color: theme.colors.accent } : {};
+        
         return (
-          <h4 key={index} className="text-md font-semibold text-gray-800 mt-4 mb-2">
+          <h4 key={index} className={subHeaderStyle} style={subHeaderColor}>
             {line.replace('### ', '')}
           </h4>
         );
@@ -127,8 +169,13 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
       
       // Bold text (lines starting with **)
       if (line.startsWith('**') && line.endsWith('**')) {
+        const boldStyle = useTheme 
+          ? "font-bold mb-2 mt-3" 
+          : "font-semibold text-gray-800 mb-2 mt-3";
+        const boldColor = useTheme ? { color: theme.colors.primary } : {};
+        
         return (
-          <p key={index} className="font-semibold text-gray-800 mb-2 mt-3">
+          <p key={index} className={boldStyle} style={boldColor}>
             {line.replace(/\*\*/g, '')}
           </p>
         );
@@ -136,17 +183,23 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
       
       // Bullet points (lines starting with -)
       if (line.startsWith('- ')) {
+        const bulletColor = useTheme ? theme.colors.primary : '#6366f1';
+        
         return (
           <div key={index} className="flex items-start mb-1">
-            <span className="text-primary mr-2 mt-1">•</span>
-            <span className="text-gray-700 leading-relaxed">{line.replace('- ', '')}</span>
+            <span className="mr-2 mt-1" style={{ color: bulletColor }}>•</span>
+            <span className="leading-relaxed" style={useTheme ? { color: theme.colors.accent } : {}}>
+              {line.replace('- ', '')}
+            </span>
           </div>
         );
       }
       
       // Regular paragraph
+      const textStyle = useTheme ? { color: theme.colors.accent } : {};
+      
       return (
-        <p key={index} className="text-gray-700 mb-1 leading-relaxed">
+        <p key={index} className="mb-1 leading-relaxed" style={textStyle}>
           {line}
         </p>
       );
@@ -155,6 +208,31 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
 
   return (
     <div className="space-y-8">
+      {/* Theme Selector */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Palette className="text-primary mr-2" size={20} />
+          Choose Resume Theme
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Object.entries(resumeThemes).map(([key, theme]) => (
+            <div
+              key={key}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                selectedTheme === key 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setSelectedTheme(key as keyof typeof resumeThemes)}
+            >
+              <div className={`w-full h-16 rounded-md mb-3 ${theme.preview}`}></div>
+              <h4 className="font-semibold text-sm text-gray-900">{theme.name}</h4>
+              <p className="text-xs text-gray-600 mt-1">{theme.description}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       {/* Comparison View */}
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Original Resume */}
@@ -172,16 +250,16 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
           </CardContent>
         </Card>
 
-        {/* Optimized Resume */}
+        {/* Themed Resume Preview */}
         <Card className="relative">
           <Badge className="absolute -top-2 -right-2 bg-green-500 hover:bg-green-600">
-            Optimized
+            {resumeThemes[selectedTheme].name}
           </Badge>
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Sparkles className="text-primary mr-2" size={20} />
-                AI-Optimized Resume
+                Themed Resume Preview
               </h3>
               <Button 
                 variant="outline" 
@@ -194,9 +272,12 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
               </Button>
             </div>
           </div>
-          <CardContent className="p-6 max-h-96 overflow-y-auto">
+          <CardContent 
+            className={`p-6 max-h-96 overflow-y-auto ${resumeThemes[selectedTheme].preview}`}
+            style={{ backgroundColor: resumeThemes[selectedTheme].colors.secondary }}
+          >
             <div className="space-y-4">
-              {formatContent(result.optimizedContent)}
+              {formatContent(result.optimizedContent, true)}
             </div>
           </CardContent>
         </Card>
