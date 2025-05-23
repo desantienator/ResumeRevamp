@@ -184,7 +184,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 onClick={handleOptimize}
-                disabled={!fileUpload.uploadedFile || !jobDescription.content.trim() || optimizeMutation.isPending}
+                disabled={!fileUpload.uploadedFile || !jobDescription.analysisResult || optimizeMutation.isPending}
                 className="px-8 py-3 text-lg"
               >
                 {optimizeMutation.isPending ? (
