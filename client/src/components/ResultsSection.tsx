@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { 
   FileText, 
   Sparkles, 
@@ -12,7 +13,8 @@ import {
   Target,
   Zap,
   Shield,
-  Clock
+  Clock,
+  Copy
 } from "lucide-react";
 import type { OptimizationResponse } from "@shared/schema";
 
@@ -23,32 +25,132 @@ interface ResultsSectionProps {
 
 export default function ResultsSection({ result, onStartOver }: ResultsSectionProps) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(result.optimizedContent);
+      toast({
+        title: "Copied to Clipboard",
+        description: "Resume content copied in markup format",
+      });
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      // The optimization result should include an optimization ID for download
-      // For now, we'll simulate the download process
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Get the optimization ID from the result
+      const optimizationId = (result as any).optimizationId;
       
-      // In a real implementation, this would trigger the actual download
-      // window.open(`/api/download/${optimizationId}`, '_blank');
+      if (!optimizationId) {
+        toast({
+          title: "Download Failed",
+          description: "Optimization ID not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call the download API
+      const response = await fetch(`/api/download/${optimizationId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get filename from response headers or use default
+      const contentDisposition = response.headers.get('content-disposition');
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') 
+        : 'optimized_resume.docx';
+      
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download Complete",
+        description: "Your optimized resume has been downloaded as a Word document",
+      });
       
     } catch (error) {
       console.error("Download failed:", error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download the Word document. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsDownloading(false);
     }
   };
 
+  // Helper function to format content sections with better markdown parsing
   const formatContent = (content: string) => {
-    // Split content into sections for better display
-    const lines = content.split('\n').filter(line => line.trim());
-    return lines.map((line, index) => (
-      <p key={index} className="text-sm text-gray-700 mb-2">
-        {line}
-      </p>
-    ));
+    return content.split('\n').map((line, index) => {
+      if (line.trim() === '') return <br key={index} />;
+      
+      // Headers (lines starting with ##)
+      if (line.startsWith('## ')) {
+        return (
+          <h3 key={index} className="text-lg font-semibold text-gray-900 mt-6 mb-3 border-b border-gray-200 pb-1">
+            {line.replace('## ', '')}
+          </h3>
+        );
+      }
+      
+      // Subheaders (lines starting with ###)
+      if (line.startsWith('### ')) {
+        return (
+          <h4 key={index} className="text-md font-semibold text-gray-800 mt-4 mb-2">
+            {line.replace('### ', '')}
+          </h4>
+        );
+      }
+      
+      // Bold text (lines starting with **)
+      if (line.startsWith('**') && line.endsWith('**')) {
+        return (
+          <p key={index} className="font-semibold text-gray-800 mb-2 mt-3">
+            {line.replace(/\*\*/g, '')}
+          </p>
+        );
+      }
+      
+      // Bullet points (lines starting with -)
+      if (line.startsWith('- ')) {
+        return (
+          <div key={index} className="flex items-start mb-1">
+            <span className="text-primary mr-2 mt-1">•</span>
+            <span className="text-gray-700 leading-relaxed">{line.replace('- ', '')}</span>
+          </div>
+        );
+      }
+      
+      // Regular paragraph
+      return (
+        <p key={index} className="text-gray-700 mb-1 leading-relaxed">
+          {line}
+        </p>
+      );
+    });
   };
 
   return (
@@ -76,10 +178,21 @@ export default function ResultsSection({ result, onStartOver }: ResultsSectionPr
             Optimized
           </Badge>
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Sparkles className="text-primary mr-2" size={20} />
-              AI-Optimized Resume
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Sparkles className="text-primary mr-2" size={20} />
+                AI-Optimized Resume
+              </h3>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCopyToClipboard}
+                className="flex items-center gap-2"
+              >
+                <Copy size={16} />
+                Copy Markup
+              </Button>
+            </div>
           </div>
           <CardContent className="p-6 max-h-96 overflow-y-auto">
             <div className="space-y-4">
